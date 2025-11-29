@@ -1,0 +1,25 @@
+    Sub copyfiles()
+'Updateby http://www.hardipdabhi.wordpress.com
+    Dim xRg As Range, xCell As Range
+    Dim xSFileDlg As FileDialog, xDFileDlg As FileDialog
+    Dim xSPathStr As Variant, xDPathStr As Variant
+    Dim xVal As String
+    On Error Resume Next
+    Set xRg = Application.InputBox("Please select the file names:", "www.hardipdabhi.wordpress.com", ActiveWindow.RangeSelection.Address, , , , , 8)
+    If xRg Is Nothing Then Exit Sub
+    Set xSFileDlg = Application.FileDialog(msoFileDialogFolderPicker)
+    xSFileDlg.Title = "Please select the original folder:"
+    If xSFileDlg.Show <> -1 Then Exit Sub
+    xSPathStr = xSFileDlg.SelectedItems.Item(1) & "\"
+    Set xDFileDlg = Application.FileDialog(msoFileDialogFolderPicker)
+    xDFileDlg.Title = "Please select the destination folder:"
+    If xDFileDlg.Show <> -1 Then Exit Sub
+    xDPathStr = xDFileDlg.SelectedItems.Item(1) & "\"
+    For Each xCell In xRg
+        xVal = xCell.Value
+        If TypeName(xVal) = "String" And xVal <> "" Then
+            FileCopy xSPathStr & xVal, xDPathStr & xVal
+        End If
+    Next
+End Sub
+

@@ -1,0 +1,72 @@
+Sub FetchNames()
+    Dim myPath As String, myFile As String
+    Dim r As Long
+    Dim ws As Worksheet
+    Dim folderPicker As FileDialog
+
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Adjust if needed
+    Set folderPicker = Application.FileDialog(msoFileDialogFolderPicker)
+
+    ' Ask user to select folder
+    If folderPicker.Show <> -1 Then Exit Sub ' User cancelled
+
+    myPath = folderPicker.SelectedItems(1)
+    If Right(myPath, 1) <> "\" Then myPath = myPath & "\"
+    
+    myFile = Dir(myPath & "*.*")
+    
+    r = 2
+    ws.Range("A2:A1000").ClearContents ' Optional: clear old list
+    ws.Range("B2:B1000").ClearContents ' Optional: clear old names
+
+    Do While myFile <> ""
+        If (GetAttr(myPath & myFile) And vbDirectory) = 0 Then
+            ws.Cells(r, 1).Value = myFile
+            r = r + 1
+        End If
+        myFile = Dir
+    Loop
+
+    ws.Range("Z1").Value = myPath ' Save selected folder path
+    MsgBox "File list fetched successfully."
+End Sub
+
+Sub RenameFiles()
+    Dim myPath As String
+    Dim oldName As String, newName As String
+    Dim r As Long
+    Dim ws As Worksheet
+
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    myPath = ws.Range("Z1").Value ' Use stored path from FetchNames
+    
+    If myPath = "" Then
+        MsgBox "Folder path not found. Please run FetchNames first.", vbExclamation
+        Exit Sub
+    End If
+
+    r = 2
+    On Error GoTo RenameError
+
+    Do Until IsEmpty(ws.Cells(r, 1)) And IsEmpty(ws.Cells(r, 2))
+        oldName = Trim(ws.Cells(r, 1).Value)
+        newName = Trim(ws.Cells(r, 2).Value)
+        
+        If oldName <> "" And newName <> "" Then
+            ' Ensure file doesn't already exist with new name
+            If Dir(myPath & newName) = "" Then
+                Name myPath & oldName As myPath & newName
+            Else
+                MsgBox "File '" & newName & "' already exists. Skipping row " & r, vbExclamation
+            End If
+        End If
+        r = r + 1
+    Loop
+
+    MsgBox "Files renamed successfully."
+    Exit Sub
+
+RenameError:
+    MsgBox "Error renaming file on row " & r & ": " & Err.Description, vbCritical
+End Sub
+
